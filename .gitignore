@@ -416,3 +416,11 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+#  Rider IDE
+.idea/
+
+.config/
+
+# Ignore Docker local data
+.containers/
