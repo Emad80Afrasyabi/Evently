@@ -80,3 +80,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.Run();
+
+#pragma warning disable CA1515
+public partial class Program;
+#pragma warning disable CA1515
