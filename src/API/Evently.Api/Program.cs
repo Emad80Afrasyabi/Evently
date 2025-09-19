@@ -1,5 +1,6 @@
 using Evently.Api.Extensions;
 using Evently.Api.Middleware;
+using Evently.Api.OpenTelemetry;
 using Evently.Common.Application;
 using Evently.Common.Infrastructure;
 using Evently.Common.Presentation.Endpoints;
@@ -34,6 +35,7 @@ string databaseConnectionString = builder.Configuration.GetConnectionString("Dat
 string redisConnectionString = builder.Configuration.GetConnectionString("Cache")!;
 
 builder.Services.AddInfrastructure(
+    DiagnosticsConfig.ServiceName,
     [
         EventsModule.ConfigureConsumers(redisConnectionString),
         TicketingModule.ConfigureConsumers,
@@ -70,6 +72,8 @@ app.MapHealthChecks("health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
+
+app.UseLogContextTraceLogging();
 
 app.UseSerilogRequestLogging();
 
