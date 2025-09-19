@@ -3,6 +3,8 @@ using Evently.Api.Middleware;
 using Evently.Api.OpenTelemetry;
 using Evently.Common.Application;
 using Evently.Common.Infrastructure;
+using Evently.Common.Infrastructure.Configuration;
+using Evently.Common.Infrastructure.EventBus;
 using Evently.Common.Presentation.Endpoints;
 using Evently.Modules.Attendance.Infrastructure;
 using Evently.Modules.Events.Infrastructure;
@@ -31,8 +33,9 @@ builder.Services.AddApplication([
     Evently.Modules.Ticketing.Application.AssemblyReference.Assembly,
     Evently.Modules.Attendance.Application.AssemblyReference.Assembly]);
 
-string databaseConnectionString = builder.Configuration.GetConnectionString("Database")!;
-string redisConnectionString = builder.Configuration.GetConnectionString("Cache")!;
+string databaseConnectionString = builder.Configuration.GetConnectionStringOrThrow("Database");
+string redisConnectionString = builder.Configuration.GetConnectionStringOrThrow("Cache");
+var rabbitMqSettings = new RabbitMqSettings(builder.Configuration.GetConnectionStringOrThrow("Queue"));
 
 builder.Services.AddInfrastructure(
     DiagnosticsConfig.ServiceName,
@@ -41,6 +44,7 @@ builder.Services.AddInfrastructure(
         TicketingModule.ConfigureConsumers,
         AttendanceModule.ConfigureConsumers
     ],
+    rabbitMqSettings,
     databaseConnectionString,
     redisConnectionString);
 
