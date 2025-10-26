@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.Keycloak;
 using Testcontainers.PostgreSql;
+using Testcontainers.RabbitMq;
 using Testcontainers.Redis;
 
 namespace Evently.IntegrationTests.Abstractions;
@@ -24,6 +25,12 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
         .WithImage("redis:latest")
         .Build();
 
+    private readonly RabbitMqContainer _rabbitMqContainer = new RabbitMqBuilder()
+        .WithImage("rabbitmq:management-alpine")
+        .WithUsername("guest")
+        .WithPassword("guest")
+        .Build();
+
     private readonly KeycloakContainer _keycloakContainer = new KeycloakBuilder()
         .WithImage("quay.io/keycloak/keycloak:latest")
         .WithResourceMapping(
@@ -37,6 +44,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     {
         Environment.SetEnvironmentVariable("ConnectionStrings:Database", _dbContainer.GetConnectionString());
         Environment.SetEnvironmentVariable("ConnectionStrings:Cache", _redisContainer.GetConnectionString());
+        Environment.SetEnvironmentVariable("ConnectionStrings:Queue", _rabbitMqContainer.GetConnectionString());
 
         string keycloakAddress = _keycloakContainer.GetBaseAddress();
         string keyCloakRealmUrl = $"{keycloakAddress}realms/evently";
@@ -62,6 +70,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     {
         await _dbContainer.StartAsync();
         await _redisContainer.StartAsync();
+        await _rabbitMqContainer.StartAsync();
         await _keycloakContainer.StartAsync();
     }
 
@@ -69,6 +78,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     {
         await _dbContainer.StopAsync();
         await _redisContainer.StopAsync();
+        await _rabbitMqContainer.StopAsync();
         await _keycloakContainer.StopAsync();
     }
 }
