@@ -1,4 +1,5 @@
-﻿using Evently.Modules.Users.Infrastructure.Identity;
+﻿using DotNet.Testcontainers.Builders;
+using Evently.Modules.Users.Infrastructure.Identity;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -29,6 +30,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             new FileInfo("evently-realm-export.json"),
             new FileInfo("/opt/keycloak/data/import/realm.json"))
         .WithCommand("--import-realm")
+        .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged("Listening on: http://0.0.0.0:8080"))
         .Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -66,7 +68,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
     public new async Task DisposeAsync()
     {
         await _dbContainer.StopAsync();
-        await _dbContainer.StopAsync();
+        await _redisContainer.StopAsync();
         await _keycloakContainer.StopAsync();
     }
 }
